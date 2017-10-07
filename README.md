@@ -9,7 +9,7 @@ A python very simple spider for get/update the TLDs data from iana.org
 * Auto re-connect/retry
 
 ### Run
-setting your Intervals time for daily task
+setting your Intervals time for daily task        
 ```python GetTLDs_main.py```
 
 
