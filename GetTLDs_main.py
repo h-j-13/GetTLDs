@@ -9,10 +9,12 @@
 #
 
 import time
+import schedule
+
 from insert_info import GetTLD
 
-Intervals = 3   # 获取内容时间间隔
-GT = GetTLD()
-while 1:
-    GT.insertInfo(getIntervals=1)
-    time.sleep(60*60)    # 获取间隔
+Intervals = 3   
+schedule.every(Intervals).hours.do(GT.insertInfo)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
