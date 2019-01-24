@@ -13,8 +13,8 @@ import schedule
 
 from insert_info import GetTLD
 
-Intervals = 3   
-schedule.every(Intervals).hours.do(GT.insertInfo)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+GT = GetTLD()
+schedule.every(2).hours.do(GT.insertInfo)
+while True:
+    schedule.run_pending()
+    time.sleep(1)

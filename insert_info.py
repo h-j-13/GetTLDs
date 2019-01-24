@@ -15,9 +15,9 @@ import MySQLdb
 from db_opreation import DataBase
 from IANA_spider import spider
 
-global DBstr, TableStr
-DBstr = "domain_whois_summary"
-TableStr = "whois_tld_summary1"
+global DB_Str, TableStr
+DB_Str = "whois_support"
+TableStr = "whois_tld_addr"
 
 
 class GetTLD:
@@ -25,7 +25,7 @@ class GetTLD:
 
     def __init__(self):
         """实例化对象"""
-        global DBstr, TableStr
+        global DB_Str, TableStr
         self.db = DataBase()  # 实例数据库对象
         self.INNAspider = spider()  # 实例化一个爬虫对象
         self.staic = ConfigParser.ConfigParser()  # 实例化配置文件
@@ -42,8 +42,8 @@ class GetTLD:
     def isexist(self, tld):
         """判断这个TLD是否存在
         :return False-不存在 or insertTime：上次更新时间-存在"""
-        SQL = """SELECT * FROM {db}.{table}
-                 WHERE TLD = '{tld}'""".format(tld=tld, db=DBstr, table=TableStr)  # SQL语句
+        SQL = """SELECT * FROM {db}.{table} WHERE TLD = '{tld}'""".format(
+            tld=tld, db=DB_Str, table=TableStr)  # SQL语句
 
         result = self.db.execute(SQL)
         if result is None:
@@ -63,12 +63,12 @@ class GetTLD:
         SponsoringOrganisation = TLDinfo['SponsoringOrganisation']
         # 生成SQL语句
         if GenType == 'INSERT':
-            SQL = """INSERT {db}.{table} """.format(db=DBstr, table=TableStr)
+            SQL = """INSERT {db}.{table} """.format(db=DB_Str, table=TableStr)
             SQL += """(`TLD`,`Punycode`,`Type`,`whois_addr`,`SponsoringOrganization`)"""
             SQL += """VALUES('{T}','{PC}','{Ty}','{WS}','{SO}');""". \
                 format(T=TLD, PC=punycode, Ty=Type, WS=WhoisSrv, SO=SponsoringOrganisation)
         elif GenType == 'UPDATE':
-            SQL = """UPDATE  {db}.{table} """.format(db=DBstr, table=TableStr)
+            SQL = """UPDATE  {db}.{table} """.format(db=DB_Str, table=TableStr)
             SQL += """SET `whois_addr`='{WS}' """.format(WS=WhoisSrv)
             SQL += """WHERE `TLD` = '{T}';""".format(T=TLD)
         else:
@@ -83,11 +83,10 @@ class GetTLD:
         print "[ HTTP ]获取页面信息中...",
         try:
             HtmlData = self.INNAspider.getPageText(self.IANA_url)
-        except Exception as e:
+        except Exception as err:
             print "失败！"
-            print "[Error_HTTP] 获取内容出现问题"
+            print "[Error_HTTP] 获取内容出现问题" + str(err)
             self.db.db_close()
-            print e
         print "成功"
         # 处理信息
         for TLDinfo in self.INNAspider.getTLDinfo(HtmlData, intervalsTime=self.Intervals):
@@ -111,14 +110,14 @@ class GetTLD:
                 try:
                     self.db.execute(SQL)
                     self.db.db_commit()
-                except MySQLdb.Error as e:
+                except MySQLdb.Error as err:
                     print "[Error_DB] 数据库操作出现问题"
-                    print e
+                    print str(err)
                     self.db.db_close()
             self.db.db_commit()  # 一轮循环提交一次事物
 
 
 if __name__ == '__main__':
     GT = GetTLD()
-    GT.isexist('.com')
+    print GT.isexist('.com')
     # GT.insertInfo()
