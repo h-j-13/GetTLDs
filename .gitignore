@@ -1,20 +1,4 @@
 *.pyc
-*.pyo
-*.so
-*.class
-*~
-*.json
 *.log
-# *.conf
+*.conf
 .idea/
-TMP
-build/
-/dist/
-MANIFEST
-/tornado.egg-info/
-
-*.crt
-*.key
-*.pem
-*.csr
-*.cnf
