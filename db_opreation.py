@@ -10,7 +10,6 @@
 
 import MySQLdb
 import threading
-import time
 import datetime
 import ConfigParser
 
@@ -20,26 +19,36 @@ class DataBase:
     """
     数据库操作类
     """
+
     def __init__(self):
         cf = ConfigParser.ConfigParser()
         cf.read("GetTLDs.conf")
         self.host = cf.get('DataBase', 'host')
         self.user = cf.get('DataBase', 'user')
         self.passwd = cf.get('DataBase', 'passwd')
+        self.port = cf.get('DataBase', 'port')
         self.charset = 'utf8'
         self.db_lock = threading.Lock()
+        self.conn = None
+        self.cursor = None
 
     def get_connect(self):
         """链接数据库"""
         if self.db_lock.acquire():
             try:
                 self.conn = MySQLdb.Connection(
-                    host=self.host, user=self.user, passwd=self.passwd, charset=self.charset)
+                    host=self.host,
+                    user=self.user,
+                    passwd=self.passwd,
+                    charset=self.charset,
+                    use_unicode=False,
+                    connect_timeout=2880000
+                )
             except MySQLdb.Error, e:
                 print str(datetime.datetime.now()).split(".")[0], "ERROR %d: %s" % (e.args[0], e.args[1])
             self.cursor = self.conn.cursor()
             if not self.cursor:
-                raise(NameError, "Connect failure")
+                raise (NameError, "Connect failure")
             self.db_lock.release()
 
     def db_close(self):
@@ -64,11 +73,11 @@ class DataBase:
                 self.cursor.execute(sql)
                 result = self.cursor.fetchall()
             except MySQLdb.Error, e:
-                if e.args[0] == 2013 or e.args[0] == 2006: # 数据库连接出错，重连
+                if e.args[0] == 2013 or e.args[0] == 2006:  # 数据库连接出错，重连
                     self.db_lock.release()
                     self.get_connect()
                     print str(datetime.datetime.now()).split(".")[0], '数据库重新连接'
-                    result = self.execute(sql) # 重新执行
+                    result = self.execute(sql)  # 重新执行
                     self.db_lock.acquire()
                 else:
                     print str(datetime.datetime.now()).split(".")[0], "ERROR %d: %s" % (e.args[0], e.args[1])
